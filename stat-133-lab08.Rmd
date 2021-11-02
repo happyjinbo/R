@@ -1,0 +1,281 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r}
+# rewrite a for loop
+vec <- c(3,1,4)
+for (j in 1:3){
+  print(vec[j]*3)
+}
+vec2 <- rep(0,length(vec))
+for (i in 1:3){
+  print(vec2[i]+i)
+}
+```
+
+```{r}
+# Summation Series of 1/2
+n <- 20
+series_1 <- 0
+
+for (i in 0:n) {
+  term <- 1 / (2^i)
+  print(term)
+  series_1[i+1] <- term
+}
+sum(series_1)
+```
+```{r}
+# Summation Series of 1/9
+n <- 20
+series_2 <- 0
+
+for (i in 0:n) {
+  term <- 1 / (9^i)
+  print(term)
+  series_2[i+1] <- term
+}
+sum(series_2)
+```
+
+```{r}
+# Arithmetic Series
+n <- 10
+series_3 <- 0
+a1 <- 3
+d <- 3
+
+for(i in 0:n){
+  term <- a1 + (i-1)*d
+  print(term)
+  series_3[i+1] <- term
+}
+```
+
+```{r}
+# Geometric Sequence
+a_1 <- 3
+r <- 2
+series_4 <- 0
+n <- 10
+for(i in 1:n){
+  an <- a_1 * r^(i-1)
+  print(an)
+  series_4[i] <- an
+}
+```
+
+```{r}
+x <- 1
+n <- 10
+series_5 <- 0
+for(i in 1:n){
+  term <- ((-1)^(i-1))*((x^(2*i-1))/factorial(2*1-1))
+  print(term)
+  series_5[i] <- term
+}
+sum(series_5)
+```
+
+```{r}
+# for loop with a matrix
+set.seed(123)
+X <- matrix(rnorm(12), nrow = 4, ncol = 3)
+
+Y <- X
+for (i in 1:nrow(X)) {
+  for (j in 1:ncol(X)) {
+    if (X[i,j] < 0) {
+      Y[i,j] <- X[i,j]^2
+    } else {
+      Y[i,j] <- sqrt(X[i,j])
+    }
+  }
+}
+Y
+```
+```{r}
+# Divide a number by 2 until it becomes odd.
+val_rep <- 888000 
+
+repeat {
+  print(val_rep)
+  if (val_rep %% 2 == 1) { # If val_rep is odd,
+    break                  # end the loop.
+  }
+  val_rep <- val_rep / 2 # Divide val_rep by 2 since val_rep was even.
+  # When the end of the loop is reached, return to the beginning of the loop.
+}
+```
+```{r}
+# Divide a number by 2 until it becomes odd.
+val_while <- 888000
+
+while (val_while %% 2 == 0) { # Continue the loop as long as val_while is even.
+  print(val_while)
+  val_while <- val_while / 2
+}
+print(val_while)
+```
+
+```{r}
+# make a reduce() function
+reduce <- function(x) {
+  while(x%%2 == 0){
+    x <- x/2
+  }
+  return(x)
+}
+
+reduce(898128000)
+```
+
+```{r}
+# average for loop
+x1 <- 0
+for(i in 1:100){
+    x1 <- x1+i
+}
+x1_bar <- x1/100
+x1_bar
+# average while loop
+x2 <- 0
+i <- 1
+while (i <= 100) {
+  x2 <- x2+i
+  i <- i+1
+}
+x2_bar <- x2/100
+x2_bar
+# average repeat
+x3 <- 0
+i <- 1
+repeat{
+  x3 <- x3+i
+  i <- i+1
+  if(i > 100)
+    break
+}
+x3_bar <- x3/100
+x3_bar
+```
+
+```{r}
+# standard deviation for loop
+dev1 <- 0
+for (i in 1:100) {
+  dev1 <- dev1 + (i - 50.5)^2
+}
+sqrt(dev1 / (100 - 1))
+# standard deviation while loop
+dev2 <- 0
+i <- 1
+while (i <= 100) {
+  dev2 <-  dev2 + (i-50.5)^2
+  i <- i+1
+}
+sqrt(dev2 / (100 - 1))
+# sd repeat loop
+dev3 <- 0
+i <- 1
+repeat{
+  dev3 <- dev3 + (i-50.5)^2
+  i <- i+1
+  if(i > 100)
+    break
+}
+sqrt(dev3 / (100 - 1))
+```
+
+```{r}
+# geometric mean for loop
+product1 <- 1
+for (i in 1:50) {
+  product1 <- product1 * i
+}
+(product1)^(1/50)
+# geometri mean while loop
+product2 <- 1
+i <- 1
+while (i <= 50) {
+  product2 <- product2 * i
+  i <- i+1
+}
+(product2)^(1/50)
+# geometric mean repeat loop
+product3 <- 1
+i <- 1
+repeat{
+  product3 <- product3 * i
+  i <- i+1
+  if(i > 50)
+    break
+}
+(product3)^(1/50)
+```
+
+```{r}
+# random distance matrix
+num_letters <- length(LETTERS)
+set.seed(123)
+values <- sample.int(num_letters) 
+distances <- values %*% t(values)
+diag(distances) <- 0
+dimnames(distances) <- list(LETTERS, LETTERS)
+cal <- c('C', 'A', 'L')
+stats <- c('S', 'T', 'A', 'T', 'S')
+oski <- c('O', 'S', 'K', 'I')
+zzz <- rep('Z', 3)
+lets <- LETTERS
+first <- c('Y','I','J','U','N')
+last <- c('X','U')
+strings <- list(
+  cal = cal,
+  stats = stats,
+  oski = oski,
+  zzz = zzz,
+  lets = lets,
+  first = first,
+  last = last
+)
+get_dist <- function(dists, ltrs) {
+  if (!all(ltrs %in% LETTERS)) {
+    stop('Unrecognized character')
+  }
+  sum_dist <- 0
+  for (l in 1:(length(ltrs)-1)) {
+    from <- ltrs[l]
+    to <- ltrs[l+1]
+    sum_dist <- sum_dist + dists[from,to]
+  }
+  sum_dist
+}
+
+strings_dists <- list(cal = 1 ,
+  stats = 1,
+  oski =1 ,
+  zzz = 1,
+  lets =1 ,
+  first = 1,
+  last =1
+  )
+
+for (i in 1:length(strings)){
+  strings_dists[i]= get_dist(distances, unlist(strings[i], use.names=FALSE))
+}
+strings_dists
+```
+
+
+
+
+
+
+
+
+
+
+
+
