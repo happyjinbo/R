@@ -1,0 +1,235 @@
+---
+title: "FInal-Project"
+author: "Paul Wu"
+date: "4/3/2019"
+output: html_document
+---
+
+1. importing data (Original Dataset)
+```{r}
+library(ggplot2)
+load("36828-0005-Data.rda")
+head(da36828.0005, 5) ## first 5 rows of the original dataset
+paste("Number of rows of the original dataset: ", nrow(da36828.0005)) ## number of rows of the original dataset
+paste("number of variables of the original dataset: ", ncol(da36828.0005)) ## number of variables of the original dataset
+length(da36828.0005$INCREPWGT158)
+
+```
+
+2. Adjusted dataset
+```{r}
+library(dplyr)
+data = select(da36828.0005,IDHH,V2113,V2024,V2025A,V2026, V2071, V2072, V2074, V2078,V2119,V2125,V2127B,V2116,WGTHHCY) ## Adjust dataset
+
+head(data, 5) ## first 5 rows of the Adjust dataset
+paste("Number of rows of the Adjust dataset: ", nrow(data)) ## number of rows of the Adjusted dataset
+paste("number of variables of the Adjust dataset: ", ncol(data)) ## number of variables of the Adjusted dataset
+
+```
+
+3. clean data
+```{r}
+##change column names
+colnames(data)[1] <- "HH.ID" #household ID in the survey
+colnames(data)[2] <- "num.in" ##number of incidents recorded
+colnames(data)[3] <- "num.unit" ##number of housing units in the address
+colnames(data)[4] <- "g.or.w" ##gated or walled community
+colnames(data)[5] <- "hh.income" ##household income
+colnames(data)[6] <- "num.age>12" ##number of memebers aged 12 and above
+colnames(data)[7] <- "num.age<12"##number of members aged 12 and younger
+colnames(data)[8] <- "oper.bus"##operate business from address
+colnames(data)[9] <- "num.car" ##number of cars owned
+colnames(data)[10] <- "college?" ##education level of victim 
+colnames(data)[11] <- "land.use" ##urban or rural
+colnames(data)[12] <- "hh.region" ##region of the household
+colnames(data)[13] <- "hh.weight" ##household weight
+colnames(data)[14] <- "WGTHHCY" ##adjusted household weight
+head(data)
+
+##adjusting the categorical data
+data <- data %>%
+  mutate(g.or.w = ifelse(g.or.w == "(2) No", 0, 1))#g.or.w
+
+data<-data[!duplicated(data$HH.ID), ]
+```
+
+4. select variables, using AIC selection
+```{r}
+data1 = data[,c(2,6,7)]
+lm.fit = lm(num.in~., data1)
+step(lm.fit, direction = "both", k = 2, trace = FALSE)
+summary(lm(data$num.in~data$`num.age>12`+data$`num.age<12`))
+
+
+data1 = data[,c(2,3,4,5,8,9,10,11,12)]
+lm.fit = lm(num.in~., data1)
+step(lm.fit, direction = "both", k = 2, trace = FALSE)
+summary(lm(data$num.in~data$num.unit+data$g.or.w+data$hh.income+data$oper.bus+data$num.car+data$`college?`+data$land.use+data$hh.region))
+```
+
+5. # of incidents and region
+```{r}
+summary(data$num.in)
+summary(data$hh.region)
+
+## # of total incidents of each region 
+data1 = data.frame(
+"Northeast" = sum(filter(data[ ,c(2,12)], hh.region == "(1) Northeast")[,1]),
+"Midwest" = sum(filter(data[ ,c(2,12)], hh.region == "(2) Midwest")[,1]),
+"South" = sum(filter(data[ ,c(2,12)], hh.region == "(3) South")[,1]),
+"West" = sum(filter(data[ ,c(2,12)], hh.region == "(4) West")[,1]))
+
+data_region = data[,c(2,12)]
+
+## Then the null hypothesis is that "the people who live in the South side of America surferred the crime most."
+```
+
+Remove NA; 7. # of incidents and Income
+```{r}
+data_income = data[, c(2,5)]
+summary(lm(data$num.in~data$hh.income))
+
+model.matrix(~num.in+hh.income, data=data)
+
+N = nrow(data)
+srsMiss_design<-svydesign(id=~1, fpc=rep(N,nrow(data_income)),data=data_income)
+srsNoNA_design<-subset(srsMiss_design, acresMissing!=1)
+```
+
+
+
+
+
+
+
+
+6. Chi-square test (Result: it is independent)
+```{r}
+library(survey)
+data_region =  xtabs(~num.in+hh.region,data = data)
+
+chisq.test(data_region)
+
+```
+
+7. # of incidents and Income (dependent, positive relationship)
+```{r}
+summary(lm(data$num.in~data$hh.income))
+
+plot(data$num.in~data$hh.income)
+
+data_income =  xtabs(~num.in+hh.income,data = data)
+
+
+data_income = data.frame(data_income)
+
+data_income_1 = filter(data_income, data_income$num.in == 1)
+plot(data_income_1$Freq~data_income_1$hh.income)
+abline(lm(data_income_1$Freq~data_income_1$hh.income))
+
+
+barplot(x = data_income_1[,2], y = data_income_1[,3])
+
+
+ggplot(data_income, aes(data_income[,2], data_income[,3])) +
+  xlab("Income Intervals") + 
+  ylab("# of Household has 1 Incident") +
+  geom_col(aes(fill = hh.income)) 
+  
+
+```
+
+8. # of incidents and Age >12
+```{r}
+## Age > 12
+data_AgeLarger12 = data[,c(2,6)]
+summary(lm(data_AgeLarger12$num.in~data_AgeLarger12$`num.age>12`))
+
+#Chi square test
+tbl3<-xtabs(~num.in + data$`num.age>12`, data=data)
+chisq.test(tbl3)
+
+#geom plot
+ggplot(data, aes(x=`num.age>12`,y=num.in)) +
+  geom_point(aes( color=`num.age>12`)) + 
+  xlab("Number of People Aged > 12") +
+  ylab("Number of Incidents")
+```
+
+8. # Age of < 12
+```{r}
+library(dplyr)
+## Age < 12
+data_AgeLarger12 = data[,c(2,6)]
+summary(lm(data_AgeLarger12$num.in~data_AgeLarger12$`num.age>12`))
+
+#Chi square test
+tbl4<-xtabs(~num.in + data$`num.age<12`, data=data)
+chisq.test(tbl4)
+
+#geom plot
+ggplot(data, aes(x=`num.age<12`,y=num.in))+geom_point(aes(color=num.in))+geom_smooth(method = lm, color="Red")+xlab("Number of People Aged < 12")+ylab("Number of Incidents")
+
+group_by(data,`num.age>12`)%>%
+  summarise(
+    count=n(),
+    mean = mean(num.in),
+    sd = sd(num.in)
+  )
+
+boxplot(num.in~data$`num.age<12`,data = data)
+boxplot(num.in~data$`num.age>12`,data = data)
+
+```
+
+9. # car  (byebye not considered anymore)
+```{r}
+data_car = data[,c(2,9)]
+summary(lm(data_car$num.in~data_car$num.car))
+filter(data_car, data_car$num.car!="(8) Residue")
+plot(data_car$num.car,data_car$num.in)
+tbls4<-xtabs(~num.car+hh.income, data = data)
+chisq.test(tbl4)
+
+ggplot(data, aes(x=num.car,y=num.in)) +
+  geom_col(aes( color=num.car)) + 
+  xlab("Number of People Aged > 12") +
+  ylab("Number of Incidents")+geom_line()
+```
+
+```{r}
+a = data.frame(group = "Unadjusted.HH", value = da36828.0005$V2116)
+b = data.frame(group = "Adjusted.HH", value = da36828.0005$WGTHHCY)
+plot.data = rbind(a,b)
+ggplot(plot.data, aes(x=group,y=value,fill=group))+geom_boxplot()
+
+c = data.frame(group = "Unadjusted.PP", value = da36828.0005$V3080)
+d = data.frame(group = "Adjusted.PP", value = da36828.0005$WGTPERCY)
+plot.data = rbind(c,d)
+ggplot(plot.data, aes(x=group,y=value,fill=group))+geom_boxplot()+scale_y_continuous(name="Stopping distance", breaks = seq(0,200000,2000))
+
+e = data.frame(group = "Unadjusted.In", value = da36828.0005$)
+f = data.frame(group = "Adjusted.In", value = da36828.0005$SERIES_IWEIGHT)
+plot.data = rbind(c,d)
+ggplot(plot.data, aes(x=group,y=value,fill=group))+geom_boxplot()+scale_y_continuous(name="Stopping distance", breaks = seq(0,200000,2000))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
