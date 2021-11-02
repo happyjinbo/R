@@ -95,14 +95,6 @@ N = nrow(data)
 srsMiss_design<-svydesign(id=~1, fpc=rep(N,nrow(data_income)),data=data_income)
 srsNoNA_design<-subset(srsMiss_design, acresMissing!=1)
 ```
-
-
-
-
-
-
-
-
 6. Chi-square test (Result: it is independent)
 ```{r}
 library(survey)
@@ -213,23 +205,3 @@ f = data.frame(group = "Adjusted.In", value = da36828.0005$SERIES_IWEIGHT)
 plot.data = rbind(c,d)
 ggplot(plot.data, aes(x=group,y=value,fill=group))+geom_boxplot()+scale_y_continuous(name="Stopping distance", breaks = seq(0,200000,2000))
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
